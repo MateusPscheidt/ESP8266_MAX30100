@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TCC Mateus</title>
+  <script src="https://unpkg.com/vue@3.2.20/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #app {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f2f2f2;
+    }
+
+    .card {
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin: 10px;
+      padding: 20px;
+      text-align: center;
+      width: 300px;
+      position: relative;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card input {
+      border: none;
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 0;
+      padding: 0;
+      text-align: center;
+      width: 100%;
+      background-color: transparent;
+    }
+
+    .card h2 {
+      margin-top: 0;
+    }
+
+    .card p {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .card .heart-icon {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      animation: heart-beat 1s infinite;
+      display: none;
+    }
+
+    .card.communicating .heart-icon {
+      display: block;
+    }
+
+    @keyframes heart-beat {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    TCC Mateus Felipe Pscheidt
+  </header>
+
+  <div id="app">
+    <div class="card" :class="{ communicating: nodeMCU_1.communicating }">
+      <input type="text" v-model="nodeMCU_1Name">
+      <p><strong>Batimentos:</strong> {{ getStatus(nodeMCU_1.batimento) }}</p>
+      <p><strong>SPO2:</strong> {{ getStatus(nodeMCU_1.spo2) }}</p>
+      <p><strong>Temperatura:</strong> {{ getStatus(nodeMCU_1.temperature) }}</p>
+      <img src="heart.png" alt="Heart icon" class="heart-icon">
+</div>
+<div class="card" :class="{ communicating: nodeMCU_2.communicating }">
+  <input type="text" v-model="nodeMCU_2Name">
+  <p><strong>Batimentos:</strong> {{ getStatus(nodeMCU_2.batimento) }}</p>
+  <p><strong>SPO2:</strong> {{ getStatus(nodeMCU_2.spo2) }}</p>
+  <p><strong>Temperatura:</strong> {{ getStatus(nodeMCU_2.temperature) }}</p>
+  <img src="heart.png" alt="Heart icon" class="heart-icon">
+</div>
+
+<div class="card" :class="{ communicating: nodeMCU_3.communicating }">
+  <input type="text" v-model="nodeMCU_3Name">
+  <p><strong>Batimentos:</strong> {{ getStatus(nodeMCU_3.batimento) }}</p>
+  <p><strong>SPO2:</strong> {{ getStatus(nodeMCU_3.spo2) }}</p>
+  <p><strong>Temperatura:</strong> {{ getStatus(nodeMCU_3.temperature) }}</p>
+  <img src="heart.png" alt="Heart icon" class="heart-icon">
+</div>
+</div>
+  <script>
+    const app = {
+      data() {
+        return {
+          nodeMCU_1Name: "ESP8266 1",
+          nodeMCU_2Name: "ESP8266 2",
+          nodeMCU_3Name: "ESP8266 3",
+          nodeMCU_1: {
+            communicating: false,
+            batimento: 0,
+            spo2: 0,
+            temperature: 0
+          },
+          nodeMCU_2: {
+            communicating: false,
+            batimento: 0,
+            spo2: 0,
+            temperature: 0
+          },
+          nodeMCU_3: {
+            communicating: false,
+            batimento: 0,
+            spo2: 0,
+            temperature: 0
+          }
+        };
+      },
+
+
+      // Função para obter o status da comunicação
+      methods: {
+        getStatus(value) {
+          return value === 0 ? "Sem comunicação" : value;
+        },
+      },
+      mounted() {
+
+
+
+        // Atualiza os dados dos dispositivos
+        setInterval(() => {
+
+
+          
+          // Requisição para obter os dados do NodeMCU
+          axios
+            .get("http://192.168.137.174")
+            .then((response) => {
+              this.nodeMCU_1 = {
+                ...response.data,
+                communicating: true
+              };
+            })
+            .catch((error) => {
+              this.nodeMCU_1.communicating = false;
+              console.log("Erro na NodeMCU 1");
+            });
+
+          axios
+            .get("http://192.168.137.175")
+            .then((response) => {
+              this.nodeMCU_2 = {
+                ...response.data,
+                communicating: true
+              };
+            })
+            .catch((error) => {
+              this.nodeMCU_2.communicating = false;
+              console.log("Erro na NodeMCU 2");
+            });
+
+          axios
+            .get("http://192.168.137.176")
+            .then((response) => {
+              this.nodeMCU_3 = {
+                ...response.data,
+                communicating: true
+              };
+            })
+            .catch((error) => {
+              this.nodeMCU_3.communicating = false;
+              console.log("Erro na NodeMCU 3");
+            });
+        }, 500); //tempo de atualização
+      }
+    };
+
+    Vue.createApp(app).mount("#app");
+  </script>
+</body>
+</html>
